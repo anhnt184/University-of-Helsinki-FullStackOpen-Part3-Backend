@@ -1,8 +1,22 @@
 const express = require('express')
 const app = express()
+
 const morgan = require('morgan');
 const path = require('path');
 const cors = require('cors')
+
+const requestLogger = (request, response, next) => {
+  console.log('Method:', request.method)
+  console.log('Path:  ', request.path)
+  console.log('Body:  ', request.body)
+  console.log('---')
+  next()
+}
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' })
+}
+
 
 app.use(cors())
 
@@ -17,6 +31,7 @@ morgan.token('person', (req) => {
 });
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :person'));
 app.use(express.json());
+app.use(requestLogger)
 
 let persons = [
         {
@@ -41,22 +56,18 @@ let persons = [
         }
 ]
 
-app.use(express.static('build'))
-// app.use(express.static(path.join(__dirname, 'build')));
+// app.use(express.static('build'))
+app.use(express.static(path.join(__dirname, 'build')));
 
 // app.use(express.static(path.join(__dirname, 'build')));
 
-// app.get('/*', function(req,res) {
-//   res.sendFile(path.join(__dirname, 'build', 'index.html'));
-// });
+app.get('/', function(req,res) {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
 
 app.get('/api/persons', (req, res) => {
   res.json(persons)
 })
-
-// app.get('/', (req, res) => {
-//   res.sendFile(__dirname + '/build/index.html');
-// });
 
 app.get('/info', (req, res) => {
     const entryCount = persons.length
@@ -121,6 +132,8 @@ app.post('/api/persons', (req, res) => {
   persons = persons.concat(person)
   res.json(person)
 })
+
+app.use(unknownEndpoint)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
