@@ -1,0 +1,19 @@
+# fly.toml app configuration file generated for phonebookanhonfly on 2023-06-10T08:51:34+03:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "phonebookanhonfly"
+primary_region = "arn"
+
+[env]
+  PORT = "8080" # add this
+
+[experimental]
+  auto_rollback = true
+
+[http_service]
+  http_checks = []
+  internal_port = 8080
+  processes = ["app"]
+  min_machines_running = 1

@@ -11,6 +11,9 @@
 
 # production
 #/build
+Dockerfile
+fly.toml
+.dockerignore
 
 # misc
 .DS_Store
