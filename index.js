@@ -1,6 +1,10 @@
 const express = require('express')
 const app = express()
 const morgan = require('morgan');
+const path = require('path');
+const cors = require('cors')
+
+app.use(cors())
 
 app.use(morgan('tiny'));
 
@@ -11,7 +15,6 @@ morgan.token('person', (req) => {
   }
   return '';
 });
-
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :person'));
 app.use(express.json());
 
@@ -38,9 +41,22 @@ let persons = [
         }
 ]
 
+app.use(express.static('build'))
+// app.use(express.static(path.join(__dirname, 'build')));
+
+// app.use(express.static(path.join(__dirname, 'build')));
+
+// app.get('/*', function(req,res) {
+//   res.sendFile(path.join(__dirname, 'build', 'index.html'));
+// });
+
 app.get('/api/persons', (req, res) => {
   res.json(persons)
 })
+
+// app.get('/', (req, res) => {
+//   res.sendFile(__dirname + '/build/index.html');
+// });
 
 app.get('/info', (req, res) => {
     const entryCount = persons.length
@@ -82,7 +98,6 @@ const generateId = () => {
 
 app.post('/api/persons', (req, res) => {
   const body = req.body
-
   if (!body.name || !body.number) {
     return res.status(400).json({ 
       error: 'name or number missing' 
@@ -104,13 +119,10 @@ app.post('/api/persons', (req, res) => {
   }
 
   persons = persons.concat(person)
-
-  res.json(persons)
+  res.json(person)
 })
 
-
-
-const PORT = 3001
+const PORT = process.env.PORT || 8080
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })

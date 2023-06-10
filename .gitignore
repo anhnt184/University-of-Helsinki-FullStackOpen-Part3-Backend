@@ -10,7 +10,10 @@
 /coverage
 
 # production
-/build
+#/build
+Dockerfile
+fly.toml
+.dockerignore
 
 # misc
 .DS_Store
