@@ -9,6 +9,9 @@ const { count } = require('console');
 
 const app = express();
 
+// const url = fly.secrets.get('MONGODB_URI');
+// connectToMongoDB(url);
+
 // Middleware
 app.use(cors());
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :person'));
@@ -106,20 +109,6 @@ app.put('/api/persons/:id', (req, res, next) => {
     })
     .catch((error) => next(error))
 })
-
-// Connect to MongoDB and start the server
-const url = process.env.MONGODB_URI;
-console.log('connecting to', url);
-
-// Connect to Database
-mongoose.connect(url)
-  .then(() => {
-    console.log('connected to MongoDB');
-  })
-  .catch((error) => {
-    console.log('error connecting to MongoDB:', error.message);
-  });
-
 // Disconnect from Database
 process.on('SIGINT', () => {
   mongoose.connection.close(() => {
