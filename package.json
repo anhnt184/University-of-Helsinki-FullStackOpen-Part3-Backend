@@ -10,7 +10,8 @@
     "build:ui": "rm -rf build && rm -rf ../University-of-Helsinki-FullStackOpen/part2/phonebook/build && cd ../University-of-Helsinki-FullStackOpen/part2/phonebook/ && npm run build && cp -r build ../../../University-of-Helsinki-FullStackOpen-Part3-Backend",
     "deploy": "fly deploy",
     "deploy:full": "npm run build:ui && npm run deploy",
-    "logs:prod": "fly logs"
+    "logs:prod": "fly logs",
+    "lint": "eslint ."
   },
   "author": "Tuan Anh Nguyen",
   "license": "MIT",
@@ -23,6 +24,7 @@
   },
   "devDependencies": {
     "@flydotio/dockerfile": "^0.2.14",
+    "eslint": "^8.42.0",
     "nodemon": "^2.0.22"
   }
 }
