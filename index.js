@@ -1,24 +1,15 @@
-require('dotenv').config();
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config()
+}
 const express = require('express');
-const morgan = require('morgan');
-const path = require('path');
+const bodyParser = require('body-parser')
+// const morgan = require('morgan');
 const cors = require('cors');
-const mongoose = require('mongoose');
 const Person = require('./models/person');
 const { count } = require('console');
+const person = require('./models/person');
 
 const app = express();
-
-// const url = fly.secrets.get('MONGODB_URI');
-// connectToMongoDB(url);
-
-// Middleware
-app.use(cors());
-app.use(morgan(':method :url :status :res[content-length] - :response-time ms :person'));
-app.use(express.static('build'))
-app.use(express.json());
-app.use(morgan('tiny'));
-// app.use(express.static(path.join(__dirname, 'build')));
 
 const requestLogger = (request, response, next) => {
   console.log('Method:', request.method);
@@ -28,16 +19,21 @@ const requestLogger = (request, response, next) => {
   next();
 };
 
+// Middleware
+app.use(cors());
+// app.use(morgan(':method :url :status :res[content-length] - :response-time ms :person'));
+app.use(express.static('build'))
+app.use(bodyParser.json())
+// app.use(express.json());
+// app.use(morgan('tiny'));
+
 app.use(requestLogger);
 
 // Routes
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
-});
 
 app.get('/api/persons', (req, res) => {
   Person.find({}).then((persons) => {
-    res.json(persons);
+    res.json(persons.map(person => person.toJSON()))
   });
 });
 
@@ -61,7 +57,7 @@ app.get('/api/persons/:id', (req, res, next) => {
   Person.findById(id)
     .then((person) => {
       if (person) {
-        res.json(person);
+        res.json(person.toJSON);
       } else {
         res.status(404).end();
       }
@@ -93,8 +89,7 @@ app.post('/api/persons', (req, res, next) => {
 
   newPerson.save()
     .then((savedPerson) => {
-      console.log(`Added ${savedPerson.name} number ${savedPerson.number} to phonebook`);
-      res.json(savedPerson);
+      res.json(savedPerson.toJSON);
     })
     .catch((error) => next(error))
 })
@@ -102,27 +97,21 @@ app.post('/api/persons', (req, res, next) => {
 app.put('/api/persons/:id', (req, res, next) => {
   const id = req.params.id;
   const { name, number } = req.body;
-  Person.findByIdAndUpdate(id, { name, number }, { new: true })
+  Person.findByIdAndUpdate(id, { name, number }, { new: true, runValidators: true, context: 'query' })
     .then((updatedPerson) => {
-      console.log(`Updated ${updatedPerson.name} number ${updatedPerson.number} in phonebook`);
-      res.json(updatedPerson);
+      res.json(updatedPerson.toJSON);
     })
     .catch((error) => next(error))
 })
-// Disconnect from Database
-process.on('SIGINT', () => {
-  mongoose.connection.close(() => {
-    console.log('MongoDB connection closed');
-    process.exit(0);
-  });
-});
-// Token for logging person data
-morgan.token('person', (req) => {
-  if (req.method === 'POST') {
-    return JSON.stringify(req.body);
-  }
-  return '';
-});
+
+
+// // Token for logging person data
+// morgan.token('person', (req) => {
+//   if (req.method === 'POST') {
+//     return JSON.stringify(req.body);
+//   }
+//   return '';
+// });
 
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' })
@@ -131,11 +120,11 @@ app.use(unknownEndpoint)
 
 const errorHandler = (error, request, response, next) => {
   console.error(error.message)
-
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' })
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({error: error.message})
   }
-
   next(error)
 }
 app.use(errorHandler)
