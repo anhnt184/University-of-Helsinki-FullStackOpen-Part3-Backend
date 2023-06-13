@@ -6,7 +6,10 @@
 /.pnp
 .pnp.js
 .env
-
+.eslintrc.js
+.vscode/
+.editorconfig
+settings.json
 # testing
 /coverage
 
